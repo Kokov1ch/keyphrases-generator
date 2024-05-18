@@ -1,0 +1,10 @@
+services:
+
+  php:
+    build:
+      dockerfile: docker/php/Dockerfile
+      args:
+        XDEBUG: 'true'
+    working_dir: /srv
+    volumes:
+      - '.:/srv'
