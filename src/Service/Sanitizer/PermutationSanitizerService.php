@@ -28,14 +28,15 @@ final class PermutationSanitizerService implements SanitizerInterface
         foreach ($permutation as &$word) {
             $subWords = explode(' ', $word);
             foreach ($subWords as $key => &$subWord) {
+                if ($subWord === '') {
+                    unset($subWords[$key]);
+                    continue;
+                }
+
                 if ($subWord[0] === '-') {
                     $minusWords[] = $subWord;
                     unset($subWords[$key]);
-                } elseif ($subWord === '') {
-                    unset($subWords[$key]);
                 }
-
-                $subWord = trim($subWord);
             }
 
             $word = implode(' ', $subWords);
@@ -47,9 +48,15 @@ final class PermutationSanitizerService implements SanitizerInterface
     private function removeDuplicates(array $permutations): array
     {
         $uniquePermutations = [];
+        $sortedPhrases = [];
+
         foreach ($permutations as $permutation) {
             $phrase = implode(' ', $permutation);
-            if (!in_array($phrase, $uniquePermutations, true)) {
+            sort($permutation);
+            $phraseToCheck = implode(' ', $permutation);
+
+            if (!in_array($phraseToCheck, $sortedPhrases, true)) {
+                $sortedPhrases[] = $phraseToCheck;
                 $uniquePermutations[] = $phrase;
             }
         }

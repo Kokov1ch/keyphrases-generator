@@ -23,8 +23,14 @@ up:
 down:
 	docker compose down
 
-rector:
+
+quality-check:
+	$(CMD_WRAPPER) vendor/bin/ecs check
 	$(CMD_WRAPPER) vendor/bin/rector process --dry-run
 
-ecs:
-	$(CMD_WRAPPER) vendor/bin/ecs check
+beauty:
+	$(CMD_WRAPPER) vendor/bin/rector process
+	$(CMD_WRAPPER) vendor/bin/ecs check --fix
+
+test:
+	$(CMD_WRAPPER) ./vendor/bin/phpunit tests

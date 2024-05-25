@@ -1,0 +1,41 @@
+name: Code Quality Check
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  code_quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Install Composer dependencies
+        run: composer install
+
+      - name: Run ECS
+        run: |
+          ECS_RESULT=$(vendor/bin/ecs check)
+          echo "$ECS_RESULT"
+          if [[ "$ECS_RESULT" != *"No errors found. Great job - your code is shiny in style!"* ]]; then
+            echo "ECS found errors. Fix the issues and try again."
+            exit 1
+          fi
+
+      - name: Run Rector
+        run: |
+          RECTOR_RESULT=$(vendor/bin/rector process --clear-cache)
+          echo "$RECTOR_RESULT"
+          if [[ "$RECTOR_RESULT" != *"[OK] Rector is done!"* ]]; then
+            echo "Rector found issues. Fix the issues and try again."
+            exit 1
+          fi
