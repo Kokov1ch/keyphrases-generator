@@ -9,7 +9,7 @@ use Rector\TypeDeclaration\Rector\Property\TypedPropertyFromStrictConstructorRec
 return RectorConfig::configure()
     ->withPaths([
         __DIR__ . '/src',
-        __DIR__ . '/tests/unit',
+        __DIR__ . '/tests/Unit',
     ])
     ->withRules([TypedPropertyFromStrictConstructorRector::class, ])
     ->withPreparedSets(codeQuality: true, codingStyle: true, typeDeclarations: true, privatization: true, naming: true);

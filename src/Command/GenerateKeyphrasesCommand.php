@@ -10,6 +10,7 @@ use App\Service\Sanitizer\SanitizerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\StreamableInputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'generate-keyphrases')]
@@ -25,12 +26,15 @@ final class GenerateKeyphrasesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $data = $this->readInput();
+        $data = $this->readInput($input);
+
         $words = $this->preprocessor->process($data);
         $permutations = $this->generator->generate($words);
         $result = $this->sanitizer->process($permutations);
+
         $phrases = $this->buildPhrases($result);
-        $this->printPhrases($phrases);
+        $this->out($phrases, $output);
+
         return Command::SUCCESS;
     }
 
@@ -44,20 +48,26 @@ final class GenerateKeyphrasesCommand extends Command
         return $result;
     }
 
-    private function printPhrases(array $permutations): void
+    private function readInput(InputInterface $input): array
     {
-        foreach ($permutations as $permutation) {
-            echo $permutation . "\n";
-        }
-    }
+        $inputStream = ($input instanceof StreamableInputInterface) ? $input->getStream() : null;
+        $inputStream = $inputStream ?? STDIN;
 
-    private function readInput(): array
-    {
+        $inputData = stream_get_contents($inputStream);
+        $lines = explode("\n", trim($inputData));
+
         $data = [];
-        while (!feof(STDIN)) {
-            $data[] = explode(', ', trim(fgets(STDIN)));
+        foreach ($lines as $line) {
+            $data[] = explode(', ', trim($line));
         }
 
         return $data;
+    }
+
+    private function out(array $phrases, OutputInterface $output): void
+    {
+        foreach ($phrases as $phrase) {
+            $output->writeln($phrase);
+        }
     }
 }

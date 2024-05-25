@@ -13,14 +13,14 @@ final class PreprocessorService implements PreprocessorInterface
 
     private function processLine(array $line): array
     {
-        $processedLine = array_map(fn (string $word): string => $this->correctWord($word), $line);
+        $processedLine = array_map(fn (string $word): string => $this->correctWord(trim($word)), $line);
 
         return array_values($this->removeDuplicates(array_filter($processedLine, static fn ($word): bool => $word !== '')));
     }
 
     private function replaceSymbols(string $word): string
     {
-        return str_replace(['!', '?', '.', '-', ',', ';', ':'], ' ', $word);
+        return trim(preg_replace('/[^a-zA-Z0-9А-Яа-я]/u', ' ', $word));
     }
 
     private function removeDuplicates(array $data): array
@@ -38,7 +38,8 @@ final class PreprocessorService implements PreprocessorInterface
     private function correctLexeme(string $lexeme): string
     {
         $lexeme = preg_match('/^[-!+]*[А-Яа-яA-Za-z0-9]+/', $lexeme) ?
-            $lexeme[0] . $this->replaceSymbols(substr($lexeme, 1)) : '';
+            mb_substr($lexeme, 0, 1) . $this->replaceSymbols(mb_substr($lexeme, 1)) :
+            '';
 
         if (mb_strlen($lexeme) === 0) {
             return '';
@@ -54,6 +55,7 @@ final class PreprocessorService implements PreprocessorInterface
     private function addMinusWords(array $data): array
     {
         $buff = $data;
+
         foreach ($data as $strKey => $lineToMinus) {
             foreach ($lineToMinus as $wordKey => $wordToMinus) {
                 foreach ($data as $lineToCheck) {
@@ -62,11 +64,11 @@ final class PreprocessorService implements PreprocessorInterface
                             continue;
                         }
 
-                        if (str_contains($wordToCheck, $wordToMinus) && !in_array($wordToCheck[0], ['-', '?', '!'], true)) {
+                        if (str_contains($wordToCheck, $wordToMinus) && !in_array(mb_substr($wordToCheck, 0, 1), ['-', '?', '!'], true)) {
                             $subWords = explode(' ', $wordToCheck);
                             foreach ($subWords as $subWord) {
-                                if (!str_contains($buff[$strKey][$wordKey], $subWord)) {
-                                    $buff[$strKey][$wordKey] .= ' -' . $subWord . ' ';
+                                if (!str_contains($buff[$strKey][$wordKey], $subWord) && !in_array(mb_substr($subWord, 0, 1), ['-', '?', '!'], true)) {
+                                    $buff[$strKey][$wordKey] .= ' -' . trim($subWord);
                                 }
                             }
                         }

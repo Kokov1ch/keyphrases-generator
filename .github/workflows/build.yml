@@ -1,0 +1,21 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker container
+        run: docker build --file docker/php/Dockerfile --tag php --build-arg XDEBUG=false .
