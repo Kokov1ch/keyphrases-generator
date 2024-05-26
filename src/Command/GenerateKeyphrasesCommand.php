@@ -40,12 +40,12 @@ final class GenerateKeyphrasesCommand extends Command
 
     private function buildPhrases(array $permutations): array
     {
-        $result = [];
+        $phrases = [];
         foreach ($permutations as $permutation) {
-            $result[] = implode(' ', $permutation);
+            $phrases[] = implode(' ', $permutation);
         }
 
-        return $result;
+        return $phrases;
     }
 
     private function readInput(InputInterface $input): array
